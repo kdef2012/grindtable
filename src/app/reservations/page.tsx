@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CalendarDays, Search, Filter, Plus, Clock } from 'lucide-react';
 import { useFloorStore } from '@/stores/floorStore';
+import { useAuthStore } from '@/stores/authStore';
 
 // Mock Reservations
 const RESERVATIONS = [
@@ -20,6 +21,7 @@ const TIME_SLOTS = [
 
 export default function ReservationsPage() {
   const { activeFloorPlan, setActiveFloorPlan } = useFloorStore();
+  const { currentUser } = useAuthStore();
   const tables = activeFloorPlan?.elements || [];
 
   React.useEffect(() => {
@@ -46,12 +48,14 @@ export default function ReservationsPage() {
     return TIME_SLOTS.findIndex(slot => slot === time);
   };
 
+  const backRoute = currentUser?.role === 'manager' ? '/admin' : '/';
+
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       {/* Header */}
       <header className="h-16 glass-dark border-b border-gray-800 flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center gap-3">
-          <Link href="/" className="mr-2 p-2 hover:bg-gray-800 rounded-full transition-colors">
+          <Link href={backRoute} className="mr-2 p-2 hover:bg-gray-800 rounded-full transition-colors">
             <ArrowLeft size={20} />
           </Link>
           <div className="bg-emerald-500 text-gray-950 p-2 rounded-md">

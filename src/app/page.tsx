@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useFloorStore } from '@/stores/floorStore';
 import { FloorCanvas } from '@/components/floor/FloorCanvas';
-import { Settings, Users, LayoutDashboard, UtensilsCrossed, Clock, Edit3, Sparkles, Plus } from 'lucide-react';
+import { Settings, Users, LayoutDashboard, UtensilsCrossed, Clock, Edit3, Sparkles, Plus, ArrowLeft } from 'lucide-react';
 import { TableElement } from '@/types';
 import { useWaitlistStore } from '@/stores/waitlistStore';
 import { AddGuestModal } from '@/components/modals/AddGuestModal';
@@ -26,6 +26,7 @@ const INITIAL_TABLES: TableElement[] = [
 export default function HostStandPage() {
   const { setActiveFloorPlan, activeFloorPlan, isEditMode, setIsEditMode, updateTablePosition, updateTableStatus, updateTable } = useFloorStore();
   const { entries: waitlistEntries, setAddGuestModalOpen, updateEntryStatus } = useWaitlistStore();
+  const { currentUser } = useAuthStore();
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [isAddTableOpen, setIsAddTableOpen] = useState(false);
 
@@ -141,6 +142,11 @@ export default function HostStandPage() {
       {/* Top Bar */}
       <header className="h-16 glass-dark border-b border-gray-800 flex items-center justify-between px-6 z-10 shrink-0">
         <div className="flex items-center gap-3">
+          {currentUser?.role === 'manager' && (
+            <Link href="/admin" className="mr-2 p-2 hover:bg-gray-800 rounded-full transition-colors">
+              <ArrowLeft size={20} />
+            </Link>
+          )}
           <div className="bg-amber-500 text-gray-950 p-2 rounded-md">
             <UtensilsCrossed size={24} />
           </div>

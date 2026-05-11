@@ -6,6 +6,7 @@ import {
   ArrowLeft, TrendingUp, Users, Clock, 
   UtensilsCrossed, Activity, CheckCircle, XCircle 
 } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function AnalyticsDashboard() {
   // Mock Data for the Dashboard
@@ -32,11 +33,14 @@ export default function AnalyticsDashboard() {
     { hour: '9 PM', covers: 40, height: 'h-24' },
   ];
 
+  const { currentUser } = useAuthStore();
+  const backRoute = currentUser?.role === 'manager' ? '/admin' : '/';
+
   return (
     <div className="min-h-screen bg-gray-950 text-white overflow-y-auto pb-12">
       {/* Header */}
       <header className="h-16 glass-dark border-b border-gray-800 flex items-center px-6 sticky top-0 z-10">
-        <Link href="/" className="mr-6 p-2 hover:bg-gray-800 rounded-full transition-colors">
+        <Link href={backRoute} className="mr-6 p-2 hover:bg-gray-800 rounded-full transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div className="flex items-center gap-3">
