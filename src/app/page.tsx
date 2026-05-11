@@ -42,6 +42,8 @@ export default function HostStandPage() {
       createdAt: Date.now(),
       elements: INITIAL_TABLES,
     });
+    // Start syncing with Firebase
+    useFloorStore.getState().initializeFirebaseSync('plan_1');
   }, [setActiveFloorPlan]);
 
   // Dynamic Quote Time
