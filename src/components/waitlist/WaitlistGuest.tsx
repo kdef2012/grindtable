@@ -3,7 +3,7 @@
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Users, GripVertical } from 'lucide-react';
-import { WaitlistEntry } from '@/stores/waitlistStore';
+import { WaitlistEntry, useWaitlistStore } from '@/stores/waitlistStore';
 import { useFloorStore } from '@/stores/floorStore';
 
 interface WaitlistGuestProps {
