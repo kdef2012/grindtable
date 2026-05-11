@@ -16,7 +16,7 @@ const STATUS_ACTIONS: { id: TableStatus; label: string; icon: React.FC<any>; col
 ];
 
 export function TableDetailsModal() {
-  const { selectedTableId, setSelectedTableId, activeFloorPlan, updateTableStatus } = useFloorStore();
+  const { selectedTableId, setSelectedTableId, activeFloorPlan, updateTableStatus, isEditMode } = useFloorStore();
 
   if (!selectedTableId || !activeFloorPlan) return null;
 
@@ -78,6 +78,17 @@ export function TableDetailsModal() {
             >
               <span className="text-xs font-bold flex items-center gap-2">🔗 Merge with Nearest Table</span>
             </button>
+            {isEditMode && (
+              <button
+                onClick={() => {
+                  useFloorStore.getState().removeTable(table.id);
+                  setSelectedTableId(null);
+                }}
+                className="flex flex-col items-center justify-center p-3 rounded-lg border bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/50 transition-all col-span-2 mt-2"
+              >
+                <span className="text-xs font-bold flex items-center gap-2">🗑️ Delete Table</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

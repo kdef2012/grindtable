@@ -23,7 +23,9 @@ const syncToFirestore = async (plan: FloorPlan) => {
   if (!db) return;
   try {
     const docRef = doc(db, 'floorPlans', plan.id);
-    await setDoc(docRef, plan);
+    // Strip undefined values which Firebase rejects
+    const cleanPlan = JSON.parse(JSON.stringify(plan));
+    await setDoc(docRef, cleanPlan);
   } catch (error) {
     console.error('Failed to sync floor plan to Firebase:', error);
   }
