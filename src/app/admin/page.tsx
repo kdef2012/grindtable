@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuthStore, User, Role } from '@/stores/authStore';
 import { 
   ArrowLeft, Users, ShieldAlert, Key, 
-  Trash2, Plus, LayoutDashboard, Activity, CheckCircle
+  Trash2, Plus, LayoutDashboard, Activity
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 

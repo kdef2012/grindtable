@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { 
   ArrowLeft, TrendingUp, Users, Clock, 
-  UtensilsCrossed, Activity, CheckCircle, XCircle 
+  UtensilsCrossed, Activity, XCircle 
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
