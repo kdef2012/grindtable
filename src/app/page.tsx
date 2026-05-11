@@ -12,6 +12,7 @@ import { AddGuestModal } from '@/components/modals/AddGuestModal';
 import { TableDetailsModal } from '@/components/modals/TableDetailsModal';
 import { AddTableModal } from '@/components/modals/AddTableModal';
 import { WaitlistGuest } from '@/components/waitlist/WaitlistGuest';
+import { useAuthStore } from '@/stores/authStore';
 
 const INITIAL_TABLES: TableElement[] = [
   { id: 't1', number: '11', capacity: 4, type: '4_top', shape: 'square', zone: 'main', position: { x: 100, y: 100 }, currentStatus: 'available' },
@@ -186,14 +187,24 @@ export default function HostStandPage() {
             </>
           )}
           <button className="p-2 hover:bg-gray-800 rounded-full transition-colors"><Settings size={20} /></button>
+          
+          <div className="w-px h-8 bg-gray-800 mx-1"></div>
+          <button 
+            onClick={() => {
+              useAuthStore.getState().logout();
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 hover:bg-red-500 hover:text-white border border-gray-800 rounded-md text-sm font-bold transition-all text-gray-400"
+          >
+            Lock
+          </button>
         </div>
       </header>
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar: Waitlist */}
-        <aside className="w-80 glass-dark border-r border-gray-800 flex flex-col z-10 shrink-0">
-          <div className="p-4 border-b border-gray-800">
+        <aside className="w-80 glass-panel border-r border-gray-800/50 flex flex-col z-10 shrink-0">
+          <div className="p-4 border-b border-gray-800/50">
             <h2 className="font-bold text-lg mb-2">Waitlist</h2>
             <button 
               onClick={() => setAddGuestModalOpen(true)}
