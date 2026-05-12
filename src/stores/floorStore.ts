@@ -46,9 +46,17 @@ export const useFloorStore = create<FloorStore>((set) => ({
     
     const unsubscribe = onSnapshot(doc(db, 'floorPlans', planId), (snapshot) => {
       if (snapshot.exists()) {
-        // Prevent recursive loop by checking if local state is older/different
-        // In a full implementation, you'd merge or use server timestamps
         useFloorStore.setState({ activeFloorPlan: snapshot.data() as FloorPlan });
+      } else {
+        // If it doesn't exist, create an empty one
+        const emptyPlan: FloorPlan = {
+          id: planId,
+          name: 'Main Dining Floor',
+          isActive: true,
+          createdAt: Date.now(),
+          elements: []
+        };
+        useFloorStore.getState().setActiveFloorPlan(emptyPlan);
       }
     });
 

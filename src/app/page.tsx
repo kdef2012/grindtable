@@ -14,14 +14,7 @@ import { AddTableModal } from '@/components/modals/AddTableModal';
 import { WaitlistGuest } from '@/components/waitlist/WaitlistGuest';
 import { useAuthStore } from '@/stores/authStore';
 
-const INITIAL_TABLES: TableElement[] = [
-  { id: 't1', number: '11', capacity: 4, type: '4_top', shape: 'square', zone: 'main', position: { x: 100, y: 100 }, currentStatus: 'available' },
-  { id: 't2', number: '12', capacity: 4, type: '4_top', shape: 'square', zone: 'main', position: { x: 300, y: 100 }, currentStatus: 'occupied', seatedAt: Date.now() - 1000 * 60 * 30 },
-  { id: 't3', number: '13', capacity: 2, type: '2_top', shape: 'round', zone: 'main', position: { x: 500, y: 120 }, currentStatus: 'dirty' },
-  { id: 't4', number: 'B1', capacity: 6, type: 'booth', shape: 'rectangle', zone: 'booths', position: { x: 100, y: 300 }, currentStatus: 'reserved' },
-  { id: 't5', number: 'B2', capacity: 6, type: 'booth', shape: 'rectangle', zone: 'booths', position: { x: 300, y: 300 }, currentStatus: 'available' },
-  { id: 't6', number: '21', capacity: 8, type: '8_top', shape: 'round', zone: 'private', position: { x: 700, y: 200 }, currentStatus: 'check_dropped' },
-];
+import { SettingsModal } from '@/components/modals/SettingsModal';
 
 export default function HostStandPage() {
   const { setActiveFloorPlan, activeFloorPlan, isEditMode, setIsEditMode, updateTablePosition, updateTableStatus, updateTable } = useFloorStore();
@@ -29,23 +22,16 @@ export default function HostStandPage() {
   const { currentUser } = useAuthStore();
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [isAddTableOpen, setIsAddTableOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const availableCount = activeFloorPlan?.elements.filter(t => t.currentStatus === 'available').length || 0;
   const occupiedCount = activeFloorPlan?.elements.filter(t => t.currentStatus === 'occupied' || t.currentStatus === 'ordering' || t.currentStatus === 'check_dropped').length || 0;
   const waitlistCount = waitlistEntries.filter(e => e.status === 'waiting' || e.status === 'notified').length;
 
   useEffect(() => {
-    // Initialize with fake data
-    setActiveFloorPlan({
-      id: 'plan_1',
-      name: 'Main Dining Floor',
-      isActive: true,
-      createdAt: Date.now(),
-      elements: INITIAL_TABLES,
-    });
-    // Start syncing with Firebase
+    // Start syncing with Firebase (which will create an empty plan if none exists)
     useFloorStore.getState().initializeFirebaseSync('plan_1');
-  }, [setActiveFloorPlan]);
+  }, []);
 
   // Dynamic Quote Time
   const dynamicQuoteTime = Math.max(10, occupiedCount * 3 + waitlistCount * 5);
@@ -194,7 +180,11 @@ export default function HostStandPage() {
               </Link>
             </>
           )}
-          <button className="p-2 hover:bg-gray-800 rounded-full transition-colors"><Settings size={20} /></button>
+          {currentUser?.role === 'manager' && (
+            <button onClick={() => setIsSettingsOpen(true)} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
+              <Settings size={20} />
+            </button>
+          )}
           
           <div className="w-px h-8 bg-gray-800 mx-1"></div>
           <button 
@@ -248,6 +238,7 @@ export default function HostStandPage() {
       <AddGuestModal />
       <TableDetailsModal />
       <AddTableModal isOpen={isAddTableOpen} onClose={() => setIsAddTableOpen(false)} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <DragOverlay dropAnimation={null}>
         {activeDragData?.type === 'waitlist_guest' ? (
