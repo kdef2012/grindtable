@@ -16,29 +16,25 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   if (!isOpen) return null;
 
   const handleWipe = () => {
-    if (confirm("Are you SURE you want to wipe the entire floor plan? This will delete all tables and cannot be undone.")) {
-      setActiveFloorPlan({
-        id: 'plan_1',
-        name: 'Main Dining Floor',
-        isActive: true,
-        createdAt: Date.now(),
-        elements: []
-      });
-      onClose();
-    }
+    setActiveFloorPlan({
+      id: 'plan_1',
+      name: 'Main Dining Floor',
+      isActive: true,
+      createdAt: Date.now(),
+      elements: []
+    });
+    onClose();
   };
 
   const handleLoadKbj = () => {
-    if (confirm("Are you sure you want to load the KBJ Winston-Salem blueprint? This will overwrite your current floor plan!")) {
-      setActiveFloorPlan({
-        id: 'plan_1',
-        name: 'KBJ Winston-Salem',
-        isActive: true,
-        createdAt: Date.now(),
-        elements: getKbjWinstonSalemLayout()
-      });
-      onClose();
-    }
+    setActiveFloorPlan({
+      id: 'plan_1',
+      name: 'KBJ Winston-Salem',
+      isActive: true,
+      createdAt: Date.now(),
+      elements: getKbjWinstonSalemLayout()
+    });
+    onClose();
   };
 
   return (
