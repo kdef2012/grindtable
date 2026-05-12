@@ -7,8 +7,8 @@ export type TableStatus =
   | 'dirty' 
   | 'blocked';
 
-export type TableShape = 'round' | 'square' | 'rectangle' | 'l_shaped';
-export type TableType = '2_top' | '4_top' | '6_top' | '8_top' | 'booth' | 'bar_seat' | 'high_top' | 'private' | 'patio';
+export type TableShape = 'round' | 'square' | 'rectangle' | 'l_shaped' | 'horseshoe' | 'u_shaped';
+export type TableType = '2_top' | '4_top' | '6_top' | '8_top' | 'booth' | '4_booth' | 'bar' | 'bar_seat' | 'high_top' | 'private' | 'patio' | 'restroom';
 
 export interface Position {
   x: number;

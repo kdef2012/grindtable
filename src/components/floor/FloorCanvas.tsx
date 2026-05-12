@@ -11,6 +11,7 @@ interface FloorCanvasProps {
 
 export function FloorCanvas({ isEditMode = false }: FloorCanvasProps) {
   const { activeFloorPlan } = useFloorStore();
+  const [zoom, setZoom] = React.useState(1);
 
   if (!activeFloorPlan) {
     return (
@@ -21,22 +22,44 @@ export function FloorCanvas({ isEditMode = false }: FloorCanvasProps) {
   }
 
   return (
-    <div className="relative w-full h-full overflow-auto bg-gray-950 border border-gray-800 rounded-lg shadow-inner">
-      {/* Optional: Grid background for edit mode */}
-      {isEditMode && (
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-20"
-          style={{
-            backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
-          }}
+    <div className="relative w-full h-full bg-gray-950 border border-gray-800 shadow-inner flex flex-col">
+      {/* Zoom Controls */}
+      <div className="absolute bottom-6 right-6 z-40 glass-dark border border-gray-700 rounded-full px-4 py-2 flex items-center gap-3 shadow-2xl">
+        <span className="text-xs font-bold text-gray-400">ZOOM</span>
+        <input 
+          type="range" 
+          min="0.3" 
+          max="1.5" 
+          step="0.1" 
+          value={zoom} 
+          onChange={(e) => setZoom(parseFloat(e.target.value))}
+          className="w-24 accent-amber-500"
         />
-      )}
-      
-      <div className="relative w-[2000px] h-[2000px] transform origin-top-left">
-        {activeFloorPlan.elements.map((table) => (
-          <Table key={table.id} table={table} isEditMode={isEditMode} />
-        ))}
+        <span className="text-xs font-bold text-gray-300 w-8">{Math.round(zoom * 100)}%</span>
+        <button onClick={() => setZoom(1)} className="text-xs bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors text-white">Reset</button>
+      </div>
+
+      <div className="flex-1 overflow-auto relative">
+        {/* Visual Grid for edit mode */}
+        {isEditMode && (
+          <div 
+            className="absolute top-0 left-0 w-[4000px] h-[4000px] pointer-events-none opacity-20 origin-top-left"
+            style={{
+              backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+              backgroundSize: '20px 20px',
+              transform: `scale(${zoom})`,
+            }}
+          />
+        )}
+        
+        <div 
+          className="relative w-[4000px] h-[4000px] origin-top-left transition-transform duration-75"
+          style={{ transform: `scale(${zoom})` }}
+        >
+          {activeFloorPlan.elements.map((table) => (
+            <Table key={table.id} table={table} isEditMode={isEditMode} />
+          ))}
+        </div>
       </div>
     </div>
   );

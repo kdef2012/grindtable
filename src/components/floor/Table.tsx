@@ -54,9 +54,9 @@ export function Table({ table, isEditMode = false }: TableProps) {
   const { setSelectedTableId } = useFloorStore();
 
   const handleClick = () => {
-    if (!isEditMode) {
-      setSelectedTableId(table.id);
-    }
+    // Prevent opening modal if actively dragging
+    if (transform) return;
+    setSelectedTableId(table.id);
   };
 
   return (
@@ -65,18 +65,22 @@ export function Table({ table, isEditMode = false }: TableProps) {
       onClick={handleClick}
       style={style}
       className={cn(
-        'absolute flex items-center justify-center border-2 shadow-md cursor-pointer transition-colors',
+        'absolute flex items-center justify-center shadow-md cursor-pointer transition-colors',
         getTableShapeClass(table),
         colorClass,
+        table.type === 'restroom' && 'bg-blue-900 border-4 border-blue-700 text-blue-200',
+        table.type === 'bar' && 'bg-amber-900 border-4 border-amber-700 text-amber-200',
         isEditMode && 'cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-blue-400',
-        isOver && !isEditMode && 'ring-4 ring-amber-500 scale-105'
+        isOver && !isEditMode && 'ring-4 ring-amber-500 scale-105',
+        (!isEditMode && table.type === 'restroom') && 'pointer-events-none opacity-80', // users can't interact with restrooms outside edit mode
+        (!isEditMode && table.type === 'bar') && 'pointer-events-none opacity-80'
       )}
       {...attributes}
       {...listeners}
     >
-      <div className="flex flex-col items-center justify-center w-full px-1 overflow-hidden">
+      <div className="flex flex-col items-center justify-center w-full px-1 overflow-hidden z-10 relative">
         <span className="font-bold text-sm select-none">{table.number}</span>
-        {!isEditMode && table.currentPartyName && (
+        {!isEditMode && table.currentPartyName && table.type !== 'restroom' && table.type !== 'bar' && (
           <div className="flex flex-col items-center">
             <span className="text-[10px] truncate w-full text-center font-medium bg-black/20 rounded mt-0.5 px-0.5">
               {table.currentPartyName}
@@ -90,12 +94,12 @@ export function Table({ table, isEditMode = false }: TableProps) {
         )}
       </div>
       {table.type && (
-        <span className="absolute top-1 left-1 text-[8px] uppercase font-bold opacity-60 tracking-tighter select-none">
-          {table.type.replace('_top', '').replace('_seat', '')}
+        <span className="absolute top-1 left-1 text-[8px] uppercase font-bold opacity-60 tracking-tighter select-none z-10">
+          {table.type.replace('_top', '').replace('_seat', '').replace('_booth', '')}
         </span>
       )}
-      {!isEditMode && table.capacity > 0 && (
-        <span className="absolute bottom-1 right-1 text-[10px] opacity-70 select-none">
+      {!isEditMode && table.capacity > 0 && table.type !== 'restroom' && (
+        <span className="absolute bottom-1 right-1 text-[10px] opacity-70 select-none z-10">
           {table.capacity}
         </span>
       )}
@@ -109,7 +113,13 @@ function getTableWidth(table: TableElement) {
     case '4_top': return 80;
     case '6_top': return 100;
     case '8_top': return 120;
-    case 'booth': return 100;
+    case '4_booth': return 80;
+    case 'booth': return 100; // 6 person
+    case 'restroom': return 120;
+    case 'bar': 
+      // width scales with capacity for simple rectangular bars
+      if (table.shape === 'horseshoe') return 160;
+      return Math.max(100, (table.capacity * 30)); 
     default: return 80;
   }
 }
@@ -120,17 +130,24 @@ function getTableHeight(table: TableElement) {
     case '4_top': return 80;
     case '6_top': return 80;
     case '8_top': return 80;
+    case '4_booth': return 80;
     case 'booth': return 100;
+    case 'restroom': return 120;
+    case 'bar': 
+      if (table.shape === 'horseshoe') return 120;
+      return 60;
     default: return 80;
   }
 }
 
 function getTableShapeClass(table: TableElement) {
   switch (table.shape) {
-    case 'round': return 'rounded-full';
-    case 'square': return 'rounded-md';
-    case 'rectangle': return 'rounded-md';
-    case 'l_shaped': return 'rounded-md'; // Can be customized with pseudo elements
-    default: return 'rounded-md';
+    case 'round': return 'rounded-full border-2';
+    case 'square': return 'rounded-md border-2';
+    case 'rectangle': return 'rounded-md border-2';
+    case 'l_shaped': return 'rounded-md border-2 rounded-tr-[50px]'; // Fake L
+    case 'u_shaped': return 'rounded-b-3xl border-2 border-t-0'; // U shape
+    case 'horseshoe': return 'rounded-t-full border-4 border-b-0'; // Horseshoe
+    default: return 'rounded-md border-2';
   }
 }
