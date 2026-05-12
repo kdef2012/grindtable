@@ -76,6 +76,16 @@ export const useFloorStore = create<FloorStore>((set) => ({
     const unsubscribe = onSnapshot(doc(db, 'floorPlans', planId), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data() as FloorPlan;
+        const currentLocalPlan = useFloorStore.getState().activeFloorPlan;
+        
+        // CRITICAL SAFEGUARD: Do not let Firebase wipe out our local plan if Firebase is empty and local is full.
+        // This prevents the screen from going blank if Firebase failed to sync the full layout earlier.
+        if (data.elements.length === 0 && currentLocalPlan && currentLocalPlan.elements.length > 0) {
+          console.warn("Firebase returned an empty plan, but local has tables. Pushing local to Firebase to fix.");
+          syncToFirestore(currentLocalPlan);
+          return;
+        }
+
         useFloorStore.setState({ activeFloorPlan: data });
         if (typeof window !== 'undefined') {
           localStorage.setItem(`floorPlan_${planId}`, JSON.stringify(data));
