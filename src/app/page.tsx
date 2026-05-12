@@ -214,11 +214,9 @@ export default function HostStandPage() {
               </Link>
             </>
           )}
-          {currentUser?.role === 'manager' && (
-            <button onClick={() => setIsSettingsOpen(true)} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
-              <Settings size={20} />
-            </button>
-          )}
+          <button onClick={() => setIsSettingsOpen(true)} className="p-2 hover:bg-gray-800 rounded-full transition-colors" title="Settings & Layouts">
+            <Settings size={20} />
+          </button>
           
           <div className="w-px h-8 bg-gray-800 mx-1"></div>
           <button 
