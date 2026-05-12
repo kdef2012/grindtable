@@ -85,6 +85,7 @@ export function TableDetailsModal() {
                     useFloorStore.getState().updateTable(table.id, {
                       orientation: table.orientation === 'vertical' ? 'horizontal' : 'vertical'
                     });
+                    setSelectedTableId(null);
                   }}
                   className="flex flex-col items-center justify-center p-3 rounded-lg border bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all col-span-2 mt-2"
                 >
