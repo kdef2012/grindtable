@@ -62,16 +62,20 @@ export const useFloorStore = create<FloorStore>((set) => ({
     set({ activeFloorPlan: plan });
     syncToFirestore(plan);
   },
-  initializeFirebaseSync: (planId) => set((state) => {
+  initializeFirebaseSync: (planId) => {
     // 1. Immediately try loading from local storage so UI is instantaneous and survives refresh
     if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(`floorPlan_${planId}`);
-      if (cached) {
-        useFloorStore.setState({ activeFloorPlan: JSON.parse(cached) });
+      try {
+        const cached = localStorage.getItem(`floorPlan_${planId}`);
+        if (cached) {
+          useFloorStore.setState({ activeFloorPlan: JSON.parse(cached) });
+        }
+      } catch (err) {
+        console.error('Failed to parse cached floorplan', err);
       }
     }
 
-    if (!db) return state;
+    if (!db) return;
     
     const unsubscribe = onSnapshot(doc(db, 'floorPlans', planId), (snapshot) => {
       if (snapshot.exists()) {
@@ -100,7 +104,7 @@ export const useFloorStore = create<FloorStore>((set) => ({
             createdAt: Date.now(),
             elements: []
           };
-          useFloorStore.getState().setActiveFloorPlan(emptyPlan);
+          useFloorStore.setState({ activeFloorPlan: emptyPlan });
         } else {
           // We have a local cached plan but firebase has nothing (maybe wiped). 
           // Let's push our cached plan up to Firebase to restore it!
@@ -109,9 +113,7 @@ export const useFloorStore = create<FloorStore>((set) => ({
         }
       }
     });
-
-    return state;
-  }),
+  },
   updateTablePosition: (id, x, y) => set((state) => {
     if (!state.activeFloorPlan) return state;
     const elements = state.activeFloorPlan.elements.map((el) => 
