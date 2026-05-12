@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { useFloorStore } from '@/stores/floorStore';
-import { X, Trash2, AlertTriangle, RotateCcw } from 'lucide-react';
+import { X, Trash2, AlertTriangle, RotateCcw, Map } from 'lucide-react';
+import { getKbjWinstonSalemLayout } from '@/lib/kbjLayout';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -27,21 +28,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   };
 
-  const handleResetToDefault = () => {
-    if (confirm("Are you sure you want to reset the floor plan to the default template?")) {
+  const handleLoadKbj = () => {
+    if (confirm("Are you sure you want to load the KBJ Winston-Salem blueprint? This will overwrite your current floor plan!")) {
       setActiveFloorPlan({
         id: 'plan_1',
-        name: 'Main Dining Floor',
+        name: 'KBJ Winston-Salem',
         isActive: true,
         createdAt: Date.now(),
-        elements: [
-          { id: 't1', number: '11', capacity: 4, type: '4_top', shape: 'square', zone: 'main', position: { x: 100, y: 100 }, currentStatus: 'available' },
-          { id: 't2', number: '12', capacity: 4, type: '4_top', shape: 'square', zone: 'main', position: { x: 300, y: 100 }, currentStatus: 'occupied', seatedAt: Date.now() - 1000 * 60 * 30 },
-          { id: 't3', number: '13', capacity: 2, type: '2_top', shape: 'round', zone: 'main', position: { x: 500, y: 120 }, currentStatus: 'dirty' },
-          { id: 't4', number: 'B1', capacity: 6, type: 'booth', shape: 'rectangle', zone: 'booths', position: { x: 100, y: 300 }, currentStatus: 'reserved' },
-          { id: 't5', number: 'B2', capacity: 6, type: 'booth', shape: 'rectangle', zone: 'booths', position: { x: 300, y: 300 }, currentStatus: 'available' },
-          { id: 't6', number: '21', capacity: 8, type: '8_top', shape: 'round', zone: 'private', position: { x: 700, y: 200 }, currentStatus: 'check_dropped' },
-        ]
+        elements: getKbjWinstonSalemLayout()
       });
       onClose();
     }
@@ -77,16 +71,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
           </div>
 
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-4">
-            <RotateCcw className="text-amber-500 shrink-0" size={24} />
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex gap-4">
+            <Map className="text-blue-500 shrink-0" size={24} />
             <div>
-              <h3 className="text-amber-500 font-bold mb-1">Reset to Default</h3>
-              <p className="text-sm text-gray-400 mb-4">Restore the original mock floor plan template with 6 pre-configured tables.</p>
+              <h3 className="text-blue-500 font-bold mb-1">Load KBJ Layout</h3>
+              <p className="text-sm text-gray-400 mb-4">Automatically generate the exact Winston-Salem KBJ floorplan layout from the provided blueprint.</p>
               <button 
-                onClick={handleResetToDefault}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition-colors text-sm w-full justify-center"
+                onClick={handleLoadKbj}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors text-sm w-full justify-center"
               >
-                <RotateCcw size={16} /> Reset Template
+                <Map size={16} /> Generate Floorplan
               </button>
             </div>
           </div>
