@@ -97,6 +97,20 @@ export function TableDetailsModal() {
             >
               <span className="text-xs font-bold flex items-center gap-2">🔗 Merge with Nearest Table</span>
             </button>
+            
+            {!isEditMode && table.serverId && (
+              <button
+                onClick={() => {
+                  // We update table to set serverId to undefined. Firebase allows undefined stripping via our store.
+                  useFloorStore.getState().updateTable(table.id, { serverId: undefined });
+                  setSelectedTableId(null);
+                }}
+                className="flex flex-col items-center justify-center p-3 rounded-lg border bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/50 transition-all col-span-2"
+              >
+                <span className="text-xs font-bold flex items-center gap-2">👤 Unassign Server</span>
+              </button>
+            )}
+
             {isEditMode && (
               <>
                 {isDuplicating ? (

@@ -27,7 +27,7 @@ export interface TableElement {
   currentPartyId?: string;
   currentPartyName?: string;
   seatedAt?: number; // timestamp
-  server?: string;
+  serverId?: string;
   notes?: string;
   mergedWith?: string[];
   width?: number;
@@ -41,4 +41,11 @@ export interface FloorPlan {
   isActive: boolean;
   createdAt: number;
   elements: TableElement[];
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  color: string;
+  isActive: boolean;
 }

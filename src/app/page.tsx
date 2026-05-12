@@ -14,11 +14,14 @@ import { AddTableModal } from '@/components/modals/AddTableModal';
 import { WaitlistGuest } from '@/components/waitlist/WaitlistGuest';
 import { useAuthStore } from '@/stores/authStore';
 
+import { useStaffStore } from '@/stores/staffStore';
+import { StaffSidebar } from '@/components/staff/StaffSidebar';
 import { SettingsModal } from '@/components/modals/SettingsModal';
 
 export default function HostStandPage() {
   const { setActiveFloorPlan, activeFloorPlan, isEditMode, setIsEditMode, updateTablePosition, updateTableStatus, updateTable } = useFloorStore();
   const { entries: waitlistEntries, setAddGuestModalOpen, updateEntryStatus } = useWaitlistStore();
+  const { isStaffSidebarOpen, setStaffSidebarOpen, initializeStaffSync } = useStaffStore();
   const { currentUser } = useAuthStore();
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [isAddTableOpen, setIsAddTableOpen] = useState(false);
@@ -29,8 +32,8 @@ export default function HostStandPage() {
   const waitlistCount = waitlistEntries.filter(e => e.status === 'waiting' || e.status === 'notified').length;
 
   useEffect(() => {
-    // Start syncing with Firebase (which will create an empty plan if none exists)
     useFloorStore.getState().initializeFirebaseSync('plan_1');
+    initializeStaffSync();
   }, []);
 
   // Dynamic Quote Time
@@ -134,6 +137,13 @@ export default function HostStandPage() {
       });
       updateEntryStatus(entryId, 'seated');
     }
+
+    // Handle Staff Dropped onto Table
+    if (active.data.current?.type === 'staff' && over?.data.current?.type === 'table') {
+      const staffId = active.data.current.staff.id;
+      const tableId = over.id as string;
+      updateTable(tableId, { serverId: staffId });
+    }
   };
 
   const handleDragCancel = () => {
@@ -173,6 +183,15 @@ export default function HostStandPage() {
             <Sparkles size={16} /> Smart Seat
           </button>
           <div className="w-px h-8 bg-gray-800 mx-1"></div>
+          
+          <button 
+            onClick={() => setStaffSidebarOpen(!isStaffSidebarOpen)}
+            className={`p-2 rounded-full transition-colors ${isStaffSidebarOpen ? 'bg-indigo-500 text-white' : 'hover:bg-gray-800'}`}
+            title="Servers & Staff"
+          >
+            <Users size={20} />
+          </button>
+          
           <button 
             onClick={() => setIsEditMode(!isEditMode)}
             className={`p-2 rounded-full transition-colors ${isEditMode ? 'bg-amber-500 text-gray-950' : 'hover:bg-gray-800'}`}
@@ -190,9 +209,6 @@ export default function HostStandPage() {
             </button>
           ) : (
             <>
-              <Link href="/reservations" className="p-2 hover:bg-gray-800 rounded-full transition-colors inline-flex items-center justify-center">
-                <Users size={20} />
-              </Link>
               <Link href="/analytics" className="p-2 hover:bg-gray-800 rounded-full transition-colors inline-flex items-center justify-center">
                 <LayoutDashboard size={20} />
               </Link>
@@ -251,6 +267,9 @@ export default function HostStandPage() {
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></div> Dirty</div>
           </div>
         </main>
+
+        {/* Right Sidebar: Staff */}
+        <StaffSidebar />
       </div>
 
       <AddGuestModal />
@@ -266,6 +285,11 @@ export default function HostStandPage() {
               <div className="font-bold">{activeDragData.entry.name} Party</div>
               <div className="text-sm text-gray-400">{activeDragData.entry.partySize} people</div>
             </div>
+          </div>
+        ) : activeDragData?.type === 'staff' ? (
+          <div className="bg-gray-800 border border-indigo-500 shadow-2xl rounded-lg p-3 w-64 opacity-95 flex items-center gap-3">
+            <div className={`w-4 h-4 rounded-full ${activeDragData.staff.color}`} />
+            <div className="font-bold text-white">Assign {activeDragData.staff.name}</div>
           </div>
         ) : null}
       </DragOverlay>

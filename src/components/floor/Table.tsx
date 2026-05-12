@@ -5,6 +5,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { TableElement, TableStatus, TableType } from '@/types';
 import { cn } from '@/lib/utils';
 import { useFloorStore } from '@/stores/floorStore';
+import { useStaffStore } from '@/stores/staffStore';
 
 interface TableProps {
   table: TableElement;
@@ -40,6 +41,7 @@ export function Table({ table, isEditMode = false }: TableProps) {
   };
 
   const { selectedTableIds, dragDelta, toggleTableSelection, setSelectedTableId } = useFloorStore();
+  const assignedServer = useStaffStore(s => s.staff.find(x => x.id === table.serverId));
 
   const isSelectedForMulti = selectedTableIds.includes(table.id);
   const isDraggingGroupMember = isSelectedForMulti && dragDelta && !transform;
@@ -99,6 +101,11 @@ export function Table({ table, isEditMode = false }: TableProps) {
     >
       {/* Realistic Chairs */}
       <ChairsRenderer table={table} />
+
+      {/* Server Badge */}
+      {!isEditMode && assignedServer && (
+        <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full ${assignedServer.color} border border-gray-900 shadow-md z-30`} title={`Server: ${assignedServer.name}`} />
+      )}
 
       <div className="flex flex-col items-center justify-center w-full px-1 overflow-hidden z-20 relative mix-blend-plus-lighter text-shadow">
         <span className="font-extrabold text-sm select-none drop-shadow-md">{table.number}</span>
