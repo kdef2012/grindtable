@@ -35,8 +35,10 @@ export function AddTableModal({ isOpen, onClose }: AddTableModalProps) {
   const [selectedType, setSelectedType] = useState<TableType>('4_top');
   
   // Custom Bar States
-  const [barShape, setBarShape] = useState<TableShape>('rectangle');
-  const [barCapacity, setBarCapacity] = useState<number>(10);
+  const [barShape, setBarShape] = useState<TableShape>('u_shaped');
+  const [barLeft, setBarLeft] = useState<number>(8);
+  const [barFront, setBarFront] = useState<number>(6);
+  const [barRight, setBarRight] = useState<number>(8);
 
   if (!isOpen) return null;
 
@@ -44,21 +46,100 @@ export function AddTableModal({ isOpen, onClose }: AddTableModalProps) {
     e.preventDefault();
     if (!number) return;
     
-    const typeDef = TABLE_TYPES.find(t => t.type === selectedType)!;
-    
-    const finalShape = selectedType === 'bar' ? barShape : typeDef.shape;
-    const finalCapacity = selectedType === 'bar' ? barCapacity : typeDef.capacity;
+    if (selectedType === 'bar') {
+      // Build the primary structural bar element
+      const barId = `t_${Math.random().toString(36).substr(2, 9)}`;
+      
+      let finalWidth = 100;
+      let finalHeight = 60;
+      
+      if (barShape === 'u_shaped' || barShape === 'horseshoe') {
+        finalWidth = Math.max(120, barFront * 30);
+        finalHeight = Math.max(100, Math.max(barLeft, barRight) * 30);
+      } else if (barShape === 'rectangle') {
+        finalWidth = barFront * 30;
+      }
 
-    addTable({
-      id: `t_${Math.random().toString(36).substr(2, 9)}`,
-      number,
-      capacity: finalCapacity,
-      type: selectedType,
-      shape: finalShape,
-      zone: 'main',
-      position: { x: 100, y: 100 }, // Defaults to top left, user will drag it
-      currentStatus: 'available',
-    });
+      addTable({
+        id: barId,
+        number,
+        capacity: 0, // Bar structure doesn't seat people directly, the stools do!
+        type: 'bar',
+        shape: barShape,
+        zone: 'main',
+        position: { x: 100, y: 100 },
+        currentStatus: 'available',
+        width: finalWidth,
+        height: finalHeight
+      });
+
+      // Generate Bar Stools (bar_seat)
+      const STOOL_SPACING = 30;
+      const START_X = 100;
+      const START_Y = 100;
+
+      // Left Edge Seats
+      if (barShape !== 'rectangle') {
+        for (let i = 0; i < barLeft; i++) {
+          addTable({
+            id: `t_${Math.random().toString(36).substr(2, 9)}`,
+            number: `${number}-L${i+1}`,
+            capacity: 1,
+            type: 'bar_seat',
+            shape: 'round',
+            zone: 'main',
+            position: { x: START_X - 25, y: START_Y + 20 + (i * STOOL_SPACING) },
+            currentStatus: 'available',
+          });
+        }
+      }
+
+      // Front Edge Seats
+      for (let i = 0; i < barFront; i++) {
+        addTable({
+          id: `t_${Math.random().toString(36).substr(2, 9)}`,
+          number: `${number}-F${i+1}`,
+          capacity: 1,
+          type: 'bar_seat',
+          shape: 'round',
+          zone: 'main',
+          position: { 
+            x: START_X + 20 + (i * STOOL_SPACING), 
+            y: barShape === 'u_shaped' || barShape === 'horseshoe' ? START_Y + finalHeight + 10 : START_Y - 25 
+          },
+          currentStatus: 'available',
+        });
+      }
+
+      // Right Edge Seats
+      if (barShape !== 'rectangle') {
+        for (let i = 0; i < barRight; i++) {
+          addTable({
+            id: `t_${Math.random().toString(36).substr(2, 9)}`,
+            number: `${number}-R${i+1}`,
+            capacity: 1,
+            type: 'bar_seat',
+            shape: 'round',
+            zone: 'main',
+            position: { x: START_X + finalWidth + 5, y: START_Y + 20 + (i * STOOL_SPACING) },
+            currentStatus: 'available',
+          });
+        }
+      }
+    } else {
+      // Standard Table
+      const typeDef = TABLE_TYPES.find(t => t.type === selectedType)!;
+      addTable({
+        id: `t_${Math.random().toString(36).substr(2, 9)}`,
+        number,
+        capacity: typeDef.capacity,
+        type: selectedType,
+        shape: typeDef.shape,
+        zone: 'main',
+        position: { x: 100, y: 100 },
+        currentStatus: 'available',
+      });
+    }
 
     setNumber('');
     onClose();
@@ -107,7 +188,7 @@ export function AddTableModal({ isOpen, onClose }: AddTableModalProps) {
 
           {selectedType === 'bar' && (
             <div className="p-3 bg-gray-900 border border-gray-700 rounded-lg space-y-3 animate-in slide-in-from-top-2">
-              <h3 className="font-bold text-sm text-amber-500 mb-2">Bar Configuration</h3>
+              <h3 className="font-bold text-sm text-amber-500 mb-2">Bar Generator</h3>
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1">Bar Shape</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -123,15 +204,36 @@ export function AddTableModal({ isOpen, onClose }: AddTableModalProps) {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Number of Bar Seats</label>
-                <input 
-                  type="number" 
-                  min="2" max="50"
-                  className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-1.5 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
-                  value={barCapacity}
-                  onChange={e => setBarCapacity(parseInt(e.target.value) || 10)}
-                />
+              
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {(barShape === 'u_shaped' || barShape === 'horseshoe' || barShape === 'l_shaped') && (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Left Seats</label>
+                    <input 
+                      type="number" min="0" max="20"
+                      className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2 py-1.5 text-white"
+                      value={barLeft} onChange={e => setBarLeft(parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Front Seats</label>
+                  <input 
+                    type="number" min="1" max="30"
+                    className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2 py-1.5 text-white"
+                    value={barFront} onChange={e => setBarFront(parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                {(barShape === 'u_shaped' || barShape === 'horseshoe') && (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Right Seats</label>
+                    <input 
+                      type="number" min="0" max="20"
+                      className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2 py-1.5 text-white"
+                      value={barRight} onChange={e => setBarRight(parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

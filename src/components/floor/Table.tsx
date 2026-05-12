@@ -49,7 +49,11 @@ export function Table({ table, isEditMode = false }: TableProps) {
     zIndex: transform ? 50 : 10,
   };
 
-  const colorClass = isEditMode ? 'bg-gray-700 border-gray-500 text-white' : statusColors[table.currentStatus];
+  const colorClass = isEditMode 
+    ? 'bg-gray-800 border-gray-600 text-white' 
+    : statusColors[table.currentStatus];
+
+  const realisticTexture = 'shadow-[inset_0_2px_4px_rgba(255,255,255,0.1),_0_6px_10px_rgba(0,0,0,0.4)] bg-gradient-to-br from-white/10 to-transparent';
 
   const { setSelectedTableId } = useFloorStore();
 
@@ -65,28 +69,32 @@ export function Table({ table, isEditMode = false }: TableProps) {
       onClick={handleClick}
       style={style}
       className={cn(
-        'absolute flex items-center justify-center shadow-md cursor-pointer transition-colors',
+        'absolute flex items-center justify-center cursor-pointer transition-colors border-2',
         getTableShapeClass(table),
         colorClass,
-        table.type === 'restroom' && 'bg-blue-900 border-4 border-blue-700 text-blue-200',
-        table.type === 'bar' && 'bg-amber-900 border-4 border-amber-700 text-amber-200',
+        realisticTexture,
+        table.type === 'restroom' && 'bg-slate-900 border-4 border-slate-700 text-slate-300',
+        table.type === 'bar' && 'bg-stone-900 border-4 border-amber-900 text-stone-400',
         isEditMode && 'cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-blue-400',
         isOver && !isEditMode && 'ring-4 ring-amber-500 scale-105',
-        (!isEditMode && table.type === 'restroom') && 'pointer-events-none opacity-80', // users can't interact with restrooms outside edit mode
+        (!isEditMode && table.type === 'restroom') && 'pointer-events-none opacity-80',
         (!isEditMode && table.type === 'bar') && 'pointer-events-none opacity-80'
       )}
       {...attributes}
       {...listeners}
     >
-      <div className="flex flex-col items-center justify-center w-full px-1 overflow-hidden z-10 relative">
-        <span className="font-bold text-sm select-none">{table.number}</span>
+      {/* Realistic Chairs */}
+      <ChairsRenderer table={table} />
+
+      <div className="flex flex-col items-center justify-center w-full px-1 overflow-hidden z-20 relative mix-blend-plus-lighter text-shadow">
+        <span className="font-extrabold text-sm select-none drop-shadow-md">{table.number}</span>
         {!isEditMode && table.currentPartyName && table.type !== 'restroom' && table.type !== 'bar' && (
           <div className="flex flex-col items-center">
-            <span className="text-[10px] truncate w-full text-center font-medium bg-black/20 rounded mt-0.5 px-0.5">
+            <span className="text-[10px] truncate w-full text-center font-bold bg-black/40 rounded mt-0.5 px-0.5 shadow-sm">
               {table.currentPartyName}
             </span>
             {table.currentStatus === 'occupied' && table.seatedAt && (
-              <span className="text-[8px] mt-0.5 opacity-80 animate-pulse">
+              <span className="text-[8px] mt-0.5 opacity-90 animate-pulse font-medium">
                 ~{Math.max(0, 45 - Math.floor((Date.now() - table.seatedAt) / 60000))}m left
               </span>
             )}
@@ -94,17 +102,52 @@ export function Table({ table, isEditMode = false }: TableProps) {
         )}
       </div>
       {table.type && (
-        <span className="absolute top-1 left-1 text-[8px] uppercase font-bold opacity-60 tracking-tighter select-none z-10">
+        <span className="absolute top-1 left-1 text-[8px] uppercase font-bold opacity-60 tracking-tighter select-none z-10 drop-shadow-sm">
           {table.type.replace('_top', '').replace('_seat', '').replace('_booth', '')}
         </span>
       )}
       {!isEditMode && table.capacity > 0 && table.type !== 'restroom' && (
-        <span className="absolute bottom-1 right-1 text-[10px] opacity-70 select-none z-10">
+        <span className="absolute bottom-1 right-1 text-[10px] font-bold opacity-70 select-none z-10">
           {table.capacity}
         </span>
       )}
     </div>
   );
+}
+
+function ChairsRenderer({ table }: { table: TableElement }) {
+  if (table.type === 'restroom' || table.type === 'bar') return null;
+  if (table.capacity === 0) return null;
+
+  const chairs = [];
+  const chairClass = "absolute bg-gray-800 border-2 border-gray-900 shadow-[0_2px_4px_rgba(0,0,0,0.5)] z-0";
+
+  if (table.type === '2_top') {
+    chairs.push(<div key={0} className={`${chairClass} w-6 h-4 rounded-t-full -top-4 left-1/2 -translate-x-1/2`} />);
+    chairs.push(<div key={1} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-1/2 -translate-x-1/2`} />);
+  } else if (table.type === '4_top') {
+    chairs.push(<div key={0} className={`${chairClass} w-6 h-4 rounded-t-full -top-4 left-1/2 -translate-x-1/2`} />);
+    chairs.push(<div key={1} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-1/2 -translate-x-1/2`} />);
+    chairs.push(<div key={2} className={`${chairClass} w-4 h-6 rounded-l-full -left-4 top-1/2 -translate-y-1/2`} />);
+    chairs.push(<div key={3} className={`${chairClass} w-4 h-6 rounded-r-full -right-4 top-1/2 -translate-y-1/2`} />);
+  } else if (table.type === '6_top' || table.type === '8_top') {
+    const topChairs = table.capacity === 6 ? 2 : 3;
+    for (let i=0; i<topChairs; i++) {
+      const pos = topChairs === 2 ? (i === 0 ? '25%' : '75%') : (i === 0 ? '20%' : i === 1 ? '50%' : '80%');
+      chairs.push(<div key={`t${i}`} className={`${chairClass} w-6 h-4 rounded-t-full -top-4`} style={{ left: pos, transform: 'translateX(-50%)' }} />);
+      chairs.push(<div key={`b${i}`} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4`} style={{ left: pos, transform: 'translateX(-50%)' }} />);
+    }
+    chairs.push(<div key="l" className={`${chairClass} w-4 h-6 rounded-l-full -left-4 top-1/2 -translate-y-1/2`} />);
+    chairs.push(<div key="r" className={`${chairClass} w-4 h-6 rounded-r-full -right-4 top-1/2 -translate-y-1/2`} />);
+  } else if (table.type === 'booth' || table.type === '4_booth') {
+    const benchClass = "absolute bg-amber-950 border-2 border-black/50 shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)] h-[90%] top-[5%] w-6 rounded-sm z-0";
+    chairs.push(<div key="l" className={`${benchClass} -left-5 rounded-l-lg`} />);
+    chairs.push(<div key="r" className={`${benchClass} -right-5 rounded-r-lg`} />);
+  } else if (table.type === 'bar_seat') {
+    chairs.push(<div key={0} className={`absolute bg-stone-800 border-4 border-stone-900 w-8 h-8 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-xl z-0`} />);
+  }
+
+  return <>{chairs}</>;
 }
 
 function getTableWidth(table: TableElement) {
