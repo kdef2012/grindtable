@@ -8,7 +8,7 @@ export type TableStatus =
   | 'blocked';
 
 export type TableShape = 'round' | 'square' | 'rectangle' | 'l_shaped' | 'horseshoe' | 'u_shaped';
-export type TableType = '2_top' | '4_top' | '6_top' | '8_top' | 'booth' | '4_booth' | 'bar' | 'bar_seat' | 'high_top' | 'private' | 'patio' | 'restroom';
+export type TableType = '2_top' | '4_top' | '6_top' | '8_top' | 'booth' | '4_booth' | 'bar' | 'bar_seat' | 'high_top' | 'private' | 'patio' | 'restroom' | 'structural';
 
 export interface Position {
   x: number;
@@ -32,6 +32,7 @@ export interface TableElement {
   mergedWith?: string[];
   width?: number;
   height?: number;
+  orientation?: 'horizontal' | 'vertical';
 }
 
 export interface FloorPlan {

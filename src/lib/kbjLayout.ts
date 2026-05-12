@@ -24,10 +24,10 @@ export function getKbjWinstonSalemLayout(): TableElement[] {
     add({ number: num.toString(), type: '4_booth', capacity: 4, position: { x: col1X, y: 100 + index * 120 } });
   });
 
-  // COLUMN 2: 4-Tops
+  // COLUMN 2: 4-Tops (Seats left/right)
   const col2X = 250;
   [21, 22, 23, 24, 25, 26, 27].forEach((num, index) => {
-    add({ number: num.toString(), type: '4_top', shape: 'square', capacity: 4, position: { x: col2X, y: 100 + index * 120 } });
+    add({ number: num.toString(), type: '4_top', shape: 'square', capacity: 4, position: { x: col2X, y: 100 + index * 120 }, orientation: 'vertical' });
   });
 
   // COLUMN 3 & 4: Back-to-Back Booths (31-35 are 4-seaters, 41-45 are 6-seaters)
@@ -40,13 +40,13 @@ export function getKbjWinstonSalemLayout(): TableElement[] {
     add({ number: (num + 10).toString(), type: 'booth', capacity: 6, shape: 'rectangle', position: { x: col4X, y: 100 + index * 120 } });
   });
 
-  // COLUMN 5: 51,53,54 = 6-tops. 52,55 = 4-tops.
+  // COLUMN 5: 51,53,54 = 6-tops. 52,55 = 4-tops. (Seats left/right)
   const col5X = 650;
   [51, 52, 53, 54, 55].forEach((num, index) => {
     if (num === 52 || num === 55) {
-      add({ number: num.toString(), type: '4_top', shape: 'square', capacity: 4, position: { x: col5X, y: 100 + index * 120 } });
+      add({ number: num.toString(), type: '4_top', shape: 'square', capacity: 4, position: { x: col5X, y: 100 + index * 120 }, orientation: 'vertical' });
     } else {
-      add({ number: num.toString(), type: '6_top', shape: 'rectangle', capacity: 6, position: { x: col5X, y: 100 + index * 120 } });
+      add({ number: num.toString(), type: '6_top', shape: 'rectangle', capacity: 6, position: { x: col5X, y: 100 + index * 120 }, orientation: 'vertical' });
     }
   });
 
@@ -69,7 +69,7 @@ export function getKbjWinstonSalemLayout(): TableElement[] {
   stool('BRC-2', barX + barWidth + 10, barY + 360);
   for (let i = 0; i < 8; i++) stool(`BR-${i+1}`, barX + barWidth + 10, barY + 20 + i * 40);
 
-  // ROW 6: Center Bottom (61-63 are 4-tops, 64 is 6-top)
+  // ROW 6: Center Bottom (61-63 are 4-tops, 64 is 6-top) (Seats top/bottom)
   [61, 62, 63, 64].forEach((num, index) => {
     if (num === 64) {
       add({ number: num.toString(), type: '6_top', shape: 'rectangle', capacity: 6, position: { x: 650 + index * 120, y: 700 } });
@@ -78,15 +78,15 @@ export function getKbjWinstonSalemLayout(): TableElement[] {
     }
   });
 
-  // ROW 7: Bottom Right (71 is 4-top, 72 is 6-top, 73 is 10-top)
+  // ROW 7: Bottom Right (71 is 4-top, 72 is 6-top, 73 is 10-top) (Seats top/bottom)
   add({ number: '71', type: '4_top', shape: 'square', capacity: 4, position: { x: 900, y: 820 } });
   add({ number: '72', type: '6_top', shape: 'rectangle', capacity: 6, position: { x: 1020, y: 820 } });
   add({ number: '73', type: '8_top', shape: 'rectangle', capacity: 10, position: { x: 1150, y: 820 }, width: 180, height: 80 });
 
-  // COLUMN 6: Right Side Tables (81-84 are 4-tops)
+  // COLUMN 6: Right Side Tables (81-84 are 4-tops) (Seats left/right)
   const col6X = 1300;
   [81, 82, 83, 84].forEach((num, index) => {
-    add({ number: num.toString(), type: '4_top', shape: 'square', capacity: 4, position: { x: col6X, y: 100 + index * 120 } });
+    add({ number: num.toString(), type: '4_top', shape: 'square', capacity: 4, position: { x: col6X, y: 100 + index * 120 }, orientation: 'vertical' });
   });
 
   // COLUMN 7: Right Wall Booths
@@ -97,8 +97,8 @@ export function getKbjWinstonSalemLayout(): TableElement[] {
   });
 
   // Entrance & Host Stand Block
-  add({ number: 'ENTRANCE', type: 'restroom', shape: 'rectangle', capacity: 0, position: { x: 800, y: 950 }, width: 200, height: 40 });
-  add({ number: 'HOST', type: 'restroom', shape: 'square', capacity: 0, position: { x: 500, y: 850 }, width: 80, height: 80 });
+  add({ number: 'ENTRANCE', type: 'structural', shape: 'rectangle', capacity: 0, position: { x: 800, y: 950 }, width: 200, height: 40 });
+  add({ number: 'HOST', type: 'structural', shape: 'square', capacity: 0, position: { x: 500, y: 850 }, width: 80, height: 80 });
 
   return elements;
 }

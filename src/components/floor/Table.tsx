@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { TableElement, TableStatus } from '@/types';
+import { TableElement, TableStatus, TableType } from '@/types';
 import { cn } from '@/lib/utils';
 import { useFloorStore } from '@/stores/floorStore';
 
@@ -73,11 +73,11 @@ export function Table({ table, isEditMode = false }: TableProps) {
         getTableShapeClass(table),
         colorClass,
         realisticTexture,
-        table.type === 'restroom' && 'bg-slate-900 border-4 border-slate-700 text-slate-300',
+        (table.type === 'restroom' || table.type === 'structural') && 'bg-slate-900 border-4 border-slate-700 text-slate-300',
         table.type === 'bar' && 'bg-stone-900 border-4 border-amber-900 text-stone-400',
         isEditMode && 'cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-blue-400',
         isOver && !isEditMode && 'ring-4 ring-amber-500 scale-105',
-        (!isEditMode && table.type === 'restroom') && 'pointer-events-none opacity-80',
+        (!isEditMode && (table.type === 'restroom' || table.type === 'structural')) && 'pointer-events-none opacity-80',
         (!isEditMode && table.type === 'bar') && 'pointer-events-none opacity-80'
       )}
       {...attributes}
@@ -88,7 +88,7 @@ export function Table({ table, isEditMode = false }: TableProps) {
 
       <div className="flex flex-col items-center justify-center w-full px-1 overflow-hidden z-20 relative mix-blend-plus-lighter text-shadow">
         <span className="font-extrabold text-sm select-none drop-shadow-md">{table.number}</span>
-        {!isEditMode && table.currentPartyName && table.type !== 'restroom' && table.type !== 'bar' && (
+        {!isEditMode && table.currentPartyName && table.type !== 'restroom' && table.type !== 'structural' && table.type !== 'bar' && (
           <div className="flex flex-col items-center">
             <span className="text-[10px] truncate w-full text-center font-bold bg-black/40 rounded mt-0.5 px-0.5 shadow-sm">
               {table.currentPartyName}
@@ -101,12 +101,12 @@ export function Table({ table, isEditMode = false }: TableProps) {
           </div>
         )}
       </div>
-      {table.type && (
+      {table.type && table.type !== 'structural' && (
         <span className="absolute top-1 left-1 text-[8px] uppercase font-bold opacity-60 tracking-tighter select-none z-10 drop-shadow-sm">
           {table.type.replace('_top', '').replace('_seat', '').replace('_booth', '')}
         </span>
       )}
-      {!isEditMode && table.capacity > 0 && table.type !== 'restroom' && (
+      {!isEditMode && table.capacity > 0 && table.type !== 'restroom' && table.type !== 'structural' && (
         <span className="absolute bottom-1 right-1 text-[10px] font-bold opacity-70 select-none z-10">
           {table.capacity}
         </span>
@@ -116,33 +116,55 @@ export function Table({ table, isEditMode = false }: TableProps) {
 }
 
 function ChairsRenderer({ table }: { table: TableElement }) {
-  if (table.type === 'restroom' || table.type === 'bar') return null;
+  if (table.type === 'restroom' || table.type === 'structural' || table.type === 'bar') return null;
   if (table.capacity === 0) return null;
 
   const chairs = [];
   const chairClass = "absolute bg-gray-800 border-2 border-gray-900 shadow-[0_2px_4px_rgba(0,0,0,0.5)] z-0";
+  const isVert = table.orientation === 'vertical';
 
   if (table.type === '2_top') {
-    chairs.push(<div key={0} className={`${chairClass} w-6 h-4 rounded-t-full -top-4 left-1/2 -translate-x-1/2`} />);
-    chairs.push(<div key={1} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-1/2 -translate-x-1/2`} />);
-  } else if (table.type === '4_top') {
-    chairs.push(<div key={0} className={`${chairClass} w-6 h-4 rounded-t-full -top-4 left-1/2 -translate-x-1/2`} />);
-    chairs.push(<div key={1} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-1/2 -translate-x-1/2`} />);
-    chairs.push(<div key={2} className={`${chairClass} w-4 h-6 rounded-l-full -left-4 top-1/2 -translate-y-1/2`} />);
-    chairs.push(<div key={3} className={`${chairClass} w-4 h-6 rounded-r-full -right-4 top-1/2 -translate-y-1/2`} />);
-  } else if (table.type === '6_top' || table.type === '8_top') {
-    const topChairs = table.capacity === 6 ? 2 : 3;
-    for (let i=0; i<topChairs; i++) {
-      const pos = topChairs === 2 ? (i === 0 ? '25%' : '75%') : (i === 0 ? '20%' : i === 1 ? '50%' : '80%');
-      chairs.push(<div key={`t${i}`} className={`${chairClass} w-6 h-4 rounded-t-full -top-4`} style={{ left: pos, transform: 'translateX(-50%)' }} />);
-      chairs.push(<div key={`b${i}`} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4`} style={{ left: pos, transform: 'translateX(-50%)' }} />);
+    if (isVert) {
+      chairs.push(<div key={0} className={`${chairClass} w-4 h-6 rounded-l-full -left-4 top-1/2 -translate-y-1/2`} />);
+      chairs.push(<div key={1} className={`${chairClass} w-4 h-6 rounded-r-full -right-4 top-1/2 -translate-y-1/2`} />);
+    } else {
+      chairs.push(<div key={0} className={`${chairClass} w-6 h-4 rounded-t-full -top-4 left-1/2 -translate-x-1/2`} />);
+      chairs.push(<div key={1} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-1/2 -translate-x-1/2`} />);
     }
-    chairs.push(<div key="l" className={`${chairClass} w-4 h-6 rounded-l-full -left-4 top-1/2 -translate-y-1/2`} />);
-    chairs.push(<div key="r" className={`${chairClass} w-4 h-6 rounded-r-full -right-4 top-1/2 -translate-y-1/2`} />);
+  } else if (table.type === '4_top') {
+    if (isVert) {
+      chairs.push(<div key={0} className={`${chairClass} w-4 h-6 rounded-l-full -left-4 top-[25%] -translate-y-1/2`} />);
+      chairs.push(<div key={1} className={`${chairClass} w-4 h-6 rounded-l-full -left-4 top-[75%] -translate-y-1/2`} />);
+      chairs.push(<div key={2} className={`${chairClass} w-4 h-6 rounded-r-full -right-4 top-[25%] -translate-y-1/2`} />);
+      chairs.push(<div key={3} className={`${chairClass} w-4 h-6 rounded-r-full -right-4 top-[75%] -translate-y-1/2`} />);
+    } else {
+      chairs.push(<div key={0} className={`${chairClass} w-6 h-4 rounded-t-full -top-4 left-[25%] -translate-x-1/2`} />);
+      chairs.push(<div key={1} className={`${chairClass} w-6 h-4 rounded-t-full -top-4 left-[75%] -translate-x-1/2`} />);
+      chairs.push(<div key={2} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-[25%] -translate-x-1/2`} />);
+      chairs.push(<div key={3} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-[75%] -translate-x-1/2`} />);
+    }
+  } else if (table.type === '6_top' || table.type === '8_top') {
+    const totalSides = table.capacity === 6 ? 3 : 4;
+    for (let i=0; i<totalSides; i++) {
+      const pos = totalSides === 3 ? (i === 0 ? '20%' : i === 1 ? '50%' : '80%') : (i === 0 ? '15%' : i === 1 ? '38%' : i === 2 ? '62%' : '85%');
+      if (isVert) {
+        chairs.push(<div key={`l${i}`} className={`${chairClass} w-4 h-6 rounded-l-full -left-4`} style={{ top: pos, transform: 'translateY(-50%)' }} />);
+        chairs.push(<div key={`r${i}`} className={`${chairClass} w-4 h-6 rounded-r-full -right-4`} style={{ top: pos, transform: 'translateY(-50%)' }} />);
+      } else {
+        chairs.push(<div key={`t${i}`} className={`${chairClass} w-6 h-4 rounded-t-full -top-4`} style={{ left: pos, transform: 'translateX(-50%)' }} />);
+        chairs.push(<div key={`b${i}`} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4`} style={{ left: pos, transform: 'translateX(-50%)' }} />);
+      }
+    }
   } else if (table.type === 'booth' || table.type === '4_booth') {
-    const benchClass = "absolute bg-amber-950 border-2 border-black/50 shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)] h-[90%] top-[5%] w-6 rounded-sm z-0";
-    chairs.push(<div key="l" className={`${benchClass} -left-5 rounded-l-lg`} />);
-    chairs.push(<div key="r" className={`${benchClass} -right-5 rounded-r-lg`} />);
+    if (isVert) {
+      const benchClass = "absolute bg-amber-950 border-2 border-black/50 shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)] h-[90%] top-[5%] w-6 rounded-sm z-0";
+      chairs.push(<div key="l" className={`${benchClass} -left-5 rounded-l-lg`} />);
+      chairs.push(<div key="r" className={`${benchClass} -right-5 rounded-r-lg`} />);
+    } else {
+      const benchClass = "absolute bg-amber-950 border-2 border-black/50 shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)] w-[90%] left-[5%] h-6 rounded-sm z-0";
+      chairs.push(<div key="t" className={`${benchClass} -top-5 rounded-t-lg`} />);
+      chairs.push(<div key="b" className={`${benchClass} -bottom-5 rounded-b-lg`} />);
+    }
   } else if (table.type === 'bar_seat') {
     chairs.push(<div key={0} className={`absolute bg-stone-800 border-4 border-stone-900 w-8 h-8 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-xl z-0`} />);
   }
@@ -151,36 +173,62 @@ function ChairsRenderer({ table }: { table: TableElement }) {
 }
 
 function getTableWidth(table: TableElement) {
+  let w = 80;
   switch (table.type) {
-    case '2_top': return 60;
-    case '4_top': return 80;
-    case '6_top': return 100;
-    case '8_top': return 120;
-    case '4_booth': return 80;
-    case 'booth': return 100; // 6 person
-    case 'restroom': return 120;
+    case '2_top': w = 60; break;
+    case '4_top': w = 80; break;
+    case '6_top': w = 100; break;
+    case '8_top': w = 120; break;
+    case '4_booth': w = 80; break;
+    case 'booth': w = 100; break;
+    case 'restroom':
+    case 'structural': w = 120; break;
     case 'bar': 
-      // width scales with capacity for simple rectangular bars
-      if (table.shape === 'horseshoe') return 160;
-      return Math.max(100, (table.capacity * 30)); 
-    default: return 80;
+      if (table.shape === 'horseshoe') w = 160;
+      else w = Math.max(100, (table.capacity * 30)); 
+      break;
+    default: w = 80; break;
   }
+  // Swap width and height if vertical, EXCEPT for bar and structural which have explicit custom dimensions usually
+  if (table.orientation === 'vertical' && table.type !== 'bar' && table.type !== 'structural') {
+    return getTableHeightBase(table.type);
+  }
+  return w;
 }
 
-function getTableHeight(table: TableElement) {
-  switch (table.type) {
+function getTableHeightBase(type: TableType) {
+  switch (type) {
     case '2_top': return 60;
     case '4_top': return 80;
     case '6_top': return 80;
     case '8_top': return 80;
     case '4_booth': return 80;
     case 'booth': return 100;
-    case 'restroom': return 120;
-    case 'bar': 
-      if (table.shape === 'horseshoe') return 120;
-      return 60;
+    case 'restroom':
+    case 'structural': return 120;
+    case 'bar': return 60;
     default: return 80;
   }
+}
+
+function getTableHeight(table: TableElement) {
+  let h = getTableHeightBase(table.type);
+  if (table.type === 'bar' && table.shape === 'horseshoe') h = 120;
+
+  if (table.orientation === 'vertical' && table.type !== 'bar' && table.type !== 'structural') {
+    // If vertical, height becomes what width normally is
+    let w = 80;
+    switch (table.type) {
+      case '2_top': w = 60; break;
+      case '4_top': w = 80; break;
+      case '6_top': w = 100; break;
+      case '8_top': w = 120; break;
+      case '4_booth': w = 80; break;
+      case 'booth': w = 100; break;
+    }
+    return w;
+  }
+  return h;
 }
 
 function getTableShapeClass(table: TableElement) {

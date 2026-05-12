@@ -79,15 +79,27 @@ export function TableDetailsModal() {
               <span className="text-xs font-bold flex items-center gap-2">🔗 Merge with Nearest Table</span>
             </button>
             {isEditMode && (
-              <button
-                onClick={() => {
-                  useFloorStore.getState().removeTable(table.id);
-                  setSelectedTableId(null);
-                }}
-                className="flex flex-col items-center justify-center p-3 rounded-lg border bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/50 transition-all col-span-2 mt-2"
-              >
-                <span className="text-xs font-bold flex items-center gap-2">🗑️ Delete Table</span>
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    useFloorStore.getState().updateTable(table.id, {
+                      orientation: table.orientation === 'vertical' ? 'horizontal' : 'vertical'
+                    });
+                  }}
+                  className="flex flex-col items-center justify-center p-3 rounded-lg border bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all col-span-2 mt-2"
+                >
+                  <span className="text-xs font-bold flex items-center gap-2">🔄 Rotate Orientation</span>
+                </button>
+                <button
+                  onClick={() => {
+                    useFloorStore.getState().removeTable(table.id);
+                    setSelectedTableId(null);
+                  }}
+                  className="flex flex-col items-center justify-center p-3 rounded-lg border bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/50 transition-all col-span-2 mt-2"
+                >
+                  <span className="text-xs font-bold flex items-center gap-2">🗑️ Delete Table</span>
+                </button>
+              </>
             )}
           </div>
         </div>
