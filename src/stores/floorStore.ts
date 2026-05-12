@@ -13,6 +13,13 @@ interface FloorStore {
   updateTable: (id: string, updates: Partial<TableElement>) => void;
   selectedTableId: string | null;
   setSelectedTableId: (id: string | null) => void;
+  selectedTableIds: string[];
+  toggleTableSelection: (id: string) => void;
+  clearSelection: () => void;
+  isMultiSelectMode: boolean;
+  setIsMultiSelectMode: (v: boolean) => void;
+  dragDelta: {x: number, y: number} | null;
+  setDragDelta: (delta: {x: number, y: number} | null) => void;
   isEditMode: boolean;
   setIsEditMode: (isEdit: boolean) => void;
   initializeFirebaseSync: (planId: string) => void;
@@ -34,9 +41,20 @@ const syncToFirestore = async (plan: FloorPlan) => {
 export const useFloorStore = create<FloorStore>((set) => ({
   activeFloorPlan: null,
   selectedTableId: null,
+  selectedTableIds: [],
+  isMultiSelectMode: false,
+  dragDelta: null,
   isEditMode: false,
-  setIsEditMode: (isEdit) => set({ isEditMode: isEdit }),
+  setIsEditMode: (isEdit) => set({ isEditMode: isEdit, selectedTableIds: isEdit ? [] : [], isMultiSelectMode: false }),
   setSelectedTableId: (id) => set({ selectedTableId: id }),
+  setIsMultiSelectMode: (v) => set({ isMultiSelectMode: v, selectedTableIds: [] }),
+  setDragDelta: (d) => set({ dragDelta: d }),
+  toggleTableSelection: (id) => set((state) => ({
+    selectedTableIds: state.selectedTableIds.includes(id) 
+      ? state.selectedTableIds.filter(i => i !== id) 
+      : [...state.selectedTableIds, id]
+  })),
+  clearSelection: () => set({ selectedTableIds: [] }),
   setActiveFloorPlan: (plan) => {
     set({ activeFloorPlan: plan });
     syncToFirestore(plan);

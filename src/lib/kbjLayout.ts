@@ -81,7 +81,7 @@ export function getKbjWinstonSalemLayout(): TableElement[] {
   // ROW 7: Bottom Right (71 is 4-top, 72 is 6-top, 73 is 10-top) (Seats top/bottom)
   add({ number: '71', type: '4_top', shape: 'square', capacity: 4, position: { x: 900, y: 820 } });
   add({ number: '72', type: '6_top', shape: 'rectangle', capacity: 6, position: { x: 1020, y: 820 } });
-  add({ number: '73', type: '8_top', shape: 'rectangle', capacity: 10, position: { x: 1150, y: 820 }, width: 180, height: 80 });
+  add({ number: '73', type: '10_top', shape: 'rectangle', capacity: 10, position: { x: 1150, y: 820 } });
 
   // COLUMN 6: Right Side Tables (81-84 are 4-tops) (Seats left/right)
   const col6X = 1300;

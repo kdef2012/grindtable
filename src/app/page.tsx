@@ -82,23 +82,41 @@ export default function HostStandPage() {
     setActiveDragData(event.active.data.current);
   };
 
+  const handleDragMove = (event: any) => {
+    if (event.active.data.current?.type === 'table') {
+      useFloorStore.getState().setDragDelta(event.delta);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveDragData(null);
+    useFloorStore.getState().setDragDelta(null);
     const { active, over, delta } = event;
     
     // Handle Table dragging (Edit Mode)
     if (active.data.current?.type === 'table') {
       const tableId = active.id as string;
+      const { activeFloorPlan, selectedTableIds, updateTablePosition } = useFloorStore.getState();
       const table = activeFloorPlan?.elements.find((el) => el.id === tableId);
+      
       if (table && delta) {
         const snapToGrid = (value: number) => Math.round(value / 20) * 20;
-        const newX = table.position.x + delta.x;
-        const newY = table.position.y + delta.y;
-        updateTablePosition(
-          tableId, 
-          isEditMode ? snapToGrid(newX) : newX, 
-          isEditMode ? snapToGrid(newY) : newY
-        );
+        const finalX = table.position.x + delta.x;
+        const finalY = table.position.y + delta.y;
+        const snappedX = isEditMode ? snapToGrid(finalX) : finalX;
+        const snappedY = isEditMode ? snapToGrid(finalY) : finalY;
+        
+        const dx = snappedX - table.position.x;
+        const dy = snappedY - table.position.y;
+
+        if (selectedTableIds.includes(tableId) && selectedTableIds.length > 1) {
+          selectedTableIds.forEach(id => {
+            const t = activeFloorPlan?.elements.find(e => e.id === id);
+            if (t) updateTablePosition(id, t.position.x + dx, t.position.y + dy);
+          });
+        } else {
+          updateTablePosition(tableId, snappedX, snappedY);
+        }
       }
     }
     
@@ -123,7 +141,7 @@ export default function HostStandPage() {
   };
 
   return (
-    <DndContext id="dnd-context" sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
+    <DndContext id="dnd-context" sensors={sensors} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
       <div className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden">
       {/* Top Bar */}
       <header className="h-16 glass-dark border-b border-gray-800 flex items-center justify-between px-6 z-10 shrink-0">

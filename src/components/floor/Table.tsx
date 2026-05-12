@@ -22,7 +22,7 @@ const statusColors: Record<TableStatus, string> = {
 };
 
 export function Table({ table, isEditMode = false }: TableProps) {
-  const { attributes, listeners, setNodeRef: setDraggableRef, transform } = useDraggable({
+  const { attributes, listeners, setNodeRef: setDraggableRef, transform, isDragging } = useDraggable({
     id: table.id,
     data: { type: 'table' },
     disabled: !isEditMode,
@@ -39,34 +39,47 @@ export function Table({ table, isEditMode = false }: TableProps) {
     setDroppableRef(node);
   };
 
+  const { selectedTableIds, dragDelta, toggleTableSelection, setSelectedTableId } = useFloorStore();
+
+  const isSelectedForMulti = selectedTableIds.includes(table.id);
+  const isDraggingGroupMember = isSelectedForMulti && dragDelta && !transform;
+
   const style = {
     position: 'absolute' as const,
-    left: table.position.x,
-    top: table.position.y,
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transform: transform 
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)` 
+      : isDraggingGroupMember 
+        ? `translate3d(${dragDelta.x}px, ${dragDelta.y}px, 0)` 
+        : undefined,
     width: table.width || getTableWidth(table),
     height: table.height || getTableHeight(table),
-    zIndex: transform ? 50 : 10,
+    left: table.position.x,
+    top: table.position.y,
+    zIndex: isDragging || isDraggingGroupMember ? 50 : 10,
+  };
+
+  const handleInteract = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isEditMode) {
+      if (table.type === 'structural' || table.type === 'bar') return;
+      setSelectedTableId(table.id);
+    } else {
+      if (useFloorStore.getState().isMultiSelectMode) {
+        toggleTableSelection(table.id);
+      } else {
+        setSelectedTableId(table.id);
+      }
+    }
   };
 
   const colorClass = isEditMode 
     ? 'bg-gray-800 border-gray-600 text-white' 
     : statusColors[table.currentStatus];
-
-  const realisticTexture = 'shadow-[inset_0_2px_4px_rgba(255,255,255,0.1),_0_6px_10px_rgba(0,0,0,0.4)] bg-gradient-to-br from-white/10 to-transparent';
-
-  const { setSelectedTableId } = useFloorStore();
-
-  const handleClick = () => {
-    // Prevent opening modal if actively dragging
-    if (transform) return;
-    setSelectedTableId(table.id);
-  };
+  const realisticTexture = table.type !== 'structural' ? "shadow-[inset_0_-2px_6px_rgba(0,0,0,0.6),0_4px_8px_rgba(0,0,0,0.5)] bg-gradient-to-br from-white/10 to-transparent" : "";
 
   return (
     <div
       ref={setNodeRef}
-      onClick={handleClick}
+      onClick={handleInteract}
       style={style}
       className={cn(
         'absolute flex items-center justify-center cursor-pointer transition-colors border-2',
@@ -76,6 +89,7 @@ export function Table({ table, isEditMode = false }: TableProps) {
         (table.type === 'restroom' || table.type === 'structural') && 'bg-slate-900 border-4 border-slate-700 text-slate-300',
         table.type === 'bar' && 'bg-stone-900 border-4 border-amber-900 text-stone-400',
         isEditMode && 'cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-blue-400',
+        isSelectedForMulti && isEditMode && 'ring-4 ring-blue-500 scale-105 shadow-blue-500/50',
         isOver && !isEditMode && 'ring-4 ring-amber-500 scale-105',
         (!isEditMode && (table.type === 'restroom' || table.type === 'structural')) && 'pointer-events-none opacity-80',
         (!isEditMode && table.type === 'bar') && 'pointer-events-none opacity-80'
@@ -143,10 +157,14 @@ function ChairsRenderer({ table }: { table: TableElement }) {
       chairs.push(<div key={2} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-[25%] -translate-x-1/2`} />);
       chairs.push(<div key={3} className={`${chairClass} w-6 h-4 rounded-b-full -bottom-4 left-[75%] -translate-x-1/2`} />);
     }
-  } else if (table.type === '6_top' || table.type === '8_top') {
-    const totalSides = table.capacity === 6 ? 3 : 4;
+  } else if (table.type === '6_top' || table.type === '8_top' || table.type === '10_top') {
+    const totalSides = table.capacity === 10 ? 5 : table.capacity === 6 ? 3 : 4;
     for (let i=0; i<totalSides; i++) {
-      const pos = totalSides === 3 ? (i === 0 ? '20%' : i === 1 ? '50%' : '80%') : (i === 0 ? '15%' : i === 1 ? '38%' : i === 2 ? '62%' : '85%');
+      let pos = '50%';
+      if (totalSides === 3) pos = (i === 0 ? '20%' : i === 1 ? '50%' : '80%');
+      else if (totalSides === 4) pos = (i === 0 ? '15%' : i === 1 ? '38%' : i === 2 ? '62%' : '85%');
+      else if (totalSides === 5) pos = (i === 0 ? '10%' : i === 1 ? '30%' : i === 2 ? '50%' : i === 3 ? '70%' : '90%');
+
       if (isVert) {
         chairs.push(<div key={`l${i}`} className={`${chairClass} w-4 h-6 rounded-l-full -left-4`} style={{ top: pos, transform: 'translateY(-50%)' }} />);
         chairs.push(<div key={`r${i}`} className={`${chairClass} w-4 h-6 rounded-r-full -right-4`} style={{ top: pos, transform: 'translateY(-50%)' }} />);
@@ -176,11 +194,12 @@ function getTableWidth(table: TableElement) {
   let w = 80;
   switch (table.type) {
     case '2_top': w = 60; break;
-    case '4_top': w = 80; break;
-    case '6_top': w = 100; break;
-    case '8_top': w = 120; break;
-    case '4_booth': w = 80; break;
-    case 'booth': w = 100; break;
+    case '4_top': w = 80; break; // 4x4
+    case '6_top': w = 120; break; // 6x4
+    case '8_top': w = 160; break; // 8x4
+    case '10_top': w = 200; break; // 10x4
+    case '4_booth': w = 80; break; // 4x5
+    case 'booth': w = 120; break; // 6x5
     case 'restroom':
     case 'structural': w = 120; break;
     case 'bar': 
@@ -199,11 +218,12 @@ function getTableWidth(table: TableElement) {
 function getTableHeightBase(type: TableType) {
   switch (type) {
     case '2_top': return 60;
-    case '4_top': return 80;
-    case '6_top': return 80;
-    case '8_top': return 80;
-    case '4_booth': return 80;
-    case 'booth': return 100;
+    case '4_top': return 80; // 4x4
+    case '6_top': return 80; // 6x4
+    case '8_top': return 80; // 8x4
+    case '10_top': return 80; // 10x4
+    case '4_booth': return 100; // 4x5
+    case 'booth': return 100; // 6x5
     case 'restroom':
     case 'structural': return 120;
     case 'bar': return 60;
@@ -221,10 +241,11 @@ function getTableHeight(table: TableElement) {
     switch (table.type) {
       case '2_top': w = 60; break;
       case '4_top': w = 80; break;
-      case '6_top': w = 100; break;
-      case '8_top': w = 120; break;
+      case '6_top': w = 120; break;
+      case '8_top': w = 160; break;
+      case '10_top': w = 200; break;
       case '4_booth': w = 80; break;
-      case 'booth': w = 100; break;
+      case 'booth': w = 120; break;
     }
     return w;
   }
